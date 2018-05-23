@@ -1,4 +1,4 @@
-import requests, json, re, time, configs as cfg
+import requests, json, re, time, random, configs as cfg
 from lxml import html
 from pprint import pprint
 from urllib2 import urlopen
@@ -73,7 +73,7 @@ class Session(object):
         # Second request to get js content
         JS = re.search(r'src\=\"\/(ser\-.*\.js)\"', res.content).group(1)
         url_2 = ParseResult(parsed.scheme, parsed.netloc, JS, u'', u'', u'').geturl()
-        time.sleep(0.5)
+        time.sleep(random.random())
         logging(u'Build Cookies Request #2:')
         res = self._get(url_2, referer=self.lastReferer)
         # print res.content + '\n'
@@ -82,7 +82,7 @@ class Session(object):
         PID = re.search(r'FingerprintWrapper\(\{path\:\"\/.*?\?(PID\=.*?)\"\,', res.content).group(1)
         AJAX = re.search(r'FingerprintWrapper.*?ajax_header\:\"(.*?)\"\,interval', res.content).group(1)
         url_3 = ParseResult(parsed.scheme, parsed.netloc, JS, '', PID, '').geturl()
-        time.sleep(0.5)
+        time.sleep(random.random())
         logging(u'Build Cookies Request #3:')
         res = self._post(url_3, data={ u'p': proof(cfg.p) }, headers={ u'Accept': u'*/*', u'X-Distil-Ajax': AJAX }, referer=self.lastReferer)
         # print res.__dict__
@@ -96,7 +96,6 @@ class Session(object):
             u'uid': self.session.cookies[u'D_ZUID'],
         }
         url_4 = ParseResult(parsed.scheme, parsed.netloc, u'distil_identify_cookie.html', u'', u'', u'').geturl()
-        time.sleep(0.5)
         try:
             res = self._get(url_4, params=params, referer=self.lastReferer, **kwargs)
             if res.status_code == 200:

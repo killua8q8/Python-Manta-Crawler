@@ -46,19 +46,20 @@ class DetailCrawler(Crawler):
             self.session.lastReferer = response.url
         return response, html
 
-    def _clean(self, xpath):
-        return u'|'.join(set(map(lambda x: x.strip(), xpath)))
+    def _clean(self, xpath, delimiter=u'|'):
+        _sanitized = map(lambda x: x.strip(), xpath)
+        return delimiter.join(sorted(set(_sanitized), key=_sanitized.index))
 
-    def _cleanEmail(self, email):
+    def _cleanEmail(self, email, delimiter=u';'):
         _r = r'([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)'
-        return u'|'.join(set(re.findall(_r, email)))
+        return delimiter.join(set(re.findall(_r, email)))
 
-    def _cleanUrl(self, url):
-        return u'|'.join(set(map(lambda x: x.lower(), url.split(u'|'))))
+    def _cleanUrl(self, url, delimiter=u'|'):
+        return delimiter.join(set(map(lambda x: x.lower(), url.split(u'|'))))
 
-    def _cleanPhone(self, phone):
+    def _cleanPhone(self, phone, delimiter=u'|'):
         _r = r'(\d{3})[\)\ \-]*(\d{3})[\ \-]*(\d{4})'
-        return u'|'.join(set(map(lambda p: u''.join(p), re.findall(_r, phone))))
+        return delimiter.join(set(map(lambda p: u''.join(p), re.findall(_r, phone))))
 
     def response_processor(self, response, html):
         if response:
@@ -69,7 +70,7 @@ class DetailCrawler(Crawler):
                 self.result[u'keywords']      = row[1]
                 self.result[u'score']         = u'-'
                 self.result[u'num_of_review'] = u'-'
-                self.result[u'address']       = self._clean(html.xpath(u'//*[@itemprop="streetAddress"]/text()'))
+                self.result[u'address']       = self._clean(html.xpath(u'//*[@itemprop="streetAddress"]/text()'), u'; ')
                 self.result[u'city']          = self._clean(html.xpath(u'//*[@itemprop="addressLocality"]/text()'))
                 self.result[u'state']         = self._clean(html.xpath(u'//*[@itemprop="addressRegion"]/text()'))
                 self.result[u'zip']           = self._clean(html.xpath(u'//*[@itemprop="postalCode"]/text()'))
@@ -83,5 +84,5 @@ class DetailCrawler(Crawler):
             else:
                 logging(u'Failed to get back "{}", maybe url got changed.'.format(response.url))
 
-dc = DetailCrawler(delay=1.5)
+dc = DetailCrawler(delay=5.0)
 dc.start()
